@@ -1,0 +1,61 @@
+{
+  "topic": "ATP synthase and oxidative phosphorylation",
+  "questions": [
+    {
+      "kind": "recall",
+      "question": "Which complex of the electron transport chain accepts electrons directly from NADH?",
+      "answer": "Complex I.",
+      "distractors": ["Complex II", "Complex III", "Complex IV"],
+      "explanation": "Complex II accepts electrons from FADH2, not NADH."
+    },
+    {
+      "kind": "recall",
+      "question": "On which side of the inner mitochondrial membrane do protons accumulate during oxidative phosphorylation?",
+      "answer": "The intermembrane space (the side outside the matrix).",
+      "distractors": ["The matrix", "The cytosol", "Inside ATP synthase"],
+      "explanation": "Pumping is matrix → intermembrane space; that's what creates the gradient."
+    },
+    {
+      "kind": "recall",
+      "question": "What is the immediate substrate set for ATP synthase?",
+      "answer": "ADP and inorganic phosphate (Pi) on the matrix side, plus protons crossing F0 from the intermembrane space.",
+      "distractors": ["ATP and Pi", "NADH and O2", "ADP and electrons"],
+      "explanation": "ATP synthase never sees electrons."
+    },
+    {
+      "kind": "recall",
+      "question": "Which subunit of ATP synthase rotates as protons cross the membrane?",
+      "answer": "The c-ring of F0 (and the central stalk attached to it).",
+      "distractors": ["The β-subunits of F1", "The α-subunits of F1", "The peripheral stalk"],
+      "explanation": "The peripheral stalk holds the F1 head still relative to the rotor."
+    },
+    {
+      "kind": "transfer",
+      "question": "A new drug increases the proton permeability of the inner mitochondrial membrane without affecting the ETC. Predict its effects on (a) electron transport, (b) ATP synthesis, (c) heat production.",
+      "answer": "(a) Electron transport speeds up because the gradient that opposes pumping is dissipated. (b) ATP synthesis falls because there is no proton-motive force to drive F0. (c) Heat production rises because the energy of electron transfer is dissipated as heat instead of being captured. This is the mechanism of classical 'uncouplers' like DNP.",
+      "distractors": [],
+      "explanation": "This is exactly how brown adipose tissue uses UCP1 to generate heat."
+    },
+    {
+      "kind": "transfer",
+      "question": "If you genetically replaced the c-ring of an ATP synthase so that it had 12 c-subunits instead of 8, what would change about the H+/ATP ratio, assuming everything else worked?",
+      "answer": "Each full rotation now requires 12 protons instead of 8, but still produces 3 ATP. The H+/ATP ratio rises from ~2.7 to 4. The synthase becomes 'less efficient' in proton terms — it needs more protons per ATP — but it can also operate against a smaller gradient.",
+      "distractors": [],
+      "explanation": "Real organisms tune c-ring size to the gradient they typically generate."
+    },
+    {
+      "kind": "misconception_correction",
+      "question": "A textbook says: 'The electron transport chain produces ATP by passing electrons through ATP synthase.' What is wrong with this sentence and what should it say?",
+      "answer": "Electrons never enter ATP synthase. The ETC and ATP synthase are two separate machines coupled only by the proton gradient. The sentence should say: 'The electron transport chain uses electron energy to pump protons; ATP synthase then uses proton flow back across the membrane to drive ATP synthesis.'",
+      "distractors": [],
+      "explanation": "Conflating the two machines is the most common misconception in this topic."
+    },
+    {
+      "kind": "misconception_correction",
+      "question": "A student claims: 'The proton-motive force is just a pH gradient.' Correct them.",
+      "answer": "The proton-motive force has two components: a chemical gradient (ΔpH) and an electrical gradient (Δψ, the membrane potential). In mammalian mitochondria the electrical component typically contributes more to the total free energy than the pH component does.",
+      "distractors": [],
+      "explanation": "This is why 'proton-motive force' is measured in millivolts, not in pH units."
+    }
+  ]
+}

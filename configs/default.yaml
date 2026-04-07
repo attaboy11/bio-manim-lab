@@ -1,0 +1,59 @@
+# bio-manim-lab — default runtime config
+# All values can be overridden by env vars or CLI flags.
+
+run:
+  output_root: outputs
+  resume: true              # if true, skip stages whose artifact already exists
+  fail_fast: false          # if false, supervisor will retry once per stage
+
+llm:
+  provider: openai          # openai | golden
+  model: gpt-4o-mini
+  timeout_seconds: 120
+  max_retries: 1
+  temperature: 0.2
+
+extract:
+  include_misconceptions: true
+  include_confidence_notes: true
+  min_entities: 4
+  min_processes: 2
+
+pedagogy:
+  teaching_order:
+    - orientation
+    - parts
+    - mechanism
+    - driving_logic
+    - regulation_and_failure
+    - relevance
+
+scenes:
+  target_scene_count: 6
+  target_total_seconds: 180
+  visual_strategy_default: schematic_mechanism
+
+codegen:
+  manim_quality: low_quality   # low_quality for fast iteration; production_quality for final
+  background_color: "#0b0d12"
+
+render:
+  enabled_if_manim_installed: true
+  output_filename: final.mp4
+
+study:
+  flashcard_count: 12
+  quiz_question_count: 8
+  quiz_mix:
+    recall: 4
+    transfer: 2
+    misconception_correction: 2
+
+quant:
+  enabled: false               # toggled by --quant flag
+  use_mathcode_if_available: true
+
+graphify:
+  enabled: false
+  default_corpus_path: ../bio-raw
+  imported_edges_confidence: low

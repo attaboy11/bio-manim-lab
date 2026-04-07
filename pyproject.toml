@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biomanim"
+version = "0.1.0"
+description = "Local-first CLI that turns biology topics into structured animated explainers + study assets."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Ciprian MacOvei" }]
+license = { text = "Proprietary" }
+dependencies = [
+    "pydantic>=2.6",
+    "typer>=0.12",
+    "rich>=13.7",
+    "pyyaml>=6.0",
+    "python-slugify>=8.0",
+]
+
+[project.optional-dependencies]
+llm = ["openai>=1.40"]
+render = ["manim>=0.18"]
+quant = []  # MathCode is invoked as a subprocess; no Python dep
+dev = ["pytest>=8.0", "pytest-cov>=5.0"]
+
+[project.scripts]
+biomanim = "biomanim.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"biomanim" = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

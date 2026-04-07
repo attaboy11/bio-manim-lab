@@ -1,0 +1,195 @@
+{
+  "topic": "ATP synthase and oxidative phosphorylation",
+  "entities": [
+    {
+      "id": "inner_membrane",
+      "name": "Inner mitochondrial membrane",
+      "kind": "membrane",
+      "scale": "cellular",
+      "description": "The folded lipid bilayer that separates the matrix from the intermembrane space and is impermeable to protons except through ATP synthase.",
+      "aliases": ["IMM"]
+    },
+    {
+      "id": "matrix",
+      "name": "Mitochondrial matrix",
+      "kind": "compartment",
+      "scale": "cellular",
+      "description": "The compartment enclosed by the inner membrane. Hosts the TCA cycle and contains the F1 head of ATP synthase.",
+      "aliases": []
+    },
+    {
+      "id": "ims",
+      "name": "Intermembrane space",
+      "kind": "compartment",
+      "scale": "cellular",
+      "description": "The narrow compartment between the outer and inner membranes. Where protons accumulate.",
+      "aliases": []
+    },
+    {
+      "id": "etc",
+      "name": "Electron transport chain",
+      "kind": "complex",
+      "scale": "molecular",
+      "description": "Complexes I, III and IV embedded in the inner membrane. They use the energy of electron transfers (from NADH/FADH2 to O2) to pump protons from matrix to intermembrane space.",
+      "aliases": ["ETC", "respiratory chain"]
+    },
+    {
+      "id": "nadh",
+      "name": "NADH",
+      "kind": "metabolite",
+      "scale": "molecular",
+      "description": "Electron carrier that delivers high-energy electrons to Complex I.",
+      "aliases": []
+    },
+    {
+      "id": "o2",
+      "name": "O2",
+      "kind": "metabolite",
+      "scale": "molecular",
+      "description": "The terminal electron acceptor at Complex IV. Without O2 the chain backs up and proton pumping stops.",
+      "aliases": ["oxygen"]
+    },
+    {
+      "id": "proton",
+      "name": "Proton (H+)",
+      "kind": "ion",
+      "scale": "molecular",
+      "description": "The currency of the proton-motive force. Pumped out of the matrix by the ETC, flows back through ATP synthase.",
+      "aliases": ["H+"]
+    },
+    {
+      "id": "pmf",
+      "name": "Proton-motive force",
+      "kind": "gradient",
+      "scale": "cellular",
+      "description": "The electrochemical gradient across the inner membrane: a chemical (pH) and electrical (membrane potential) difference combined.",
+      "aliases": ["PMF", "Δp"]
+    },
+    {
+      "id": "atp_synthase",
+      "name": "ATP synthase",
+      "kind": "rotary_machine",
+      "scale": "molecular",
+      "description": "A two-part rotary machine. F0 sits in the membrane and rotates as protons flow through it. F1 sits in the matrix; rotation drives conformational changes in three catalytic sites that bind ADP and Pi and release ATP.",
+      "aliases": ["F0F1 ATPase", "Complex V"]
+    },
+    {
+      "id": "adp",
+      "name": "ADP",
+      "kind": "metabolite",
+      "scale": "molecular",
+      "description": "Substrate for ATP synthase. Binds along with Pi at the catalytic sites.",
+      "aliases": []
+    },
+    {
+      "id": "atp",
+      "name": "ATP",
+      "kind": "metabolite",
+      "scale": "molecular",
+      "description": "Output of the synthase. Carries free energy to the rest of the cell.",
+      "aliases": []
+    },
+    {
+      "id": "pi",
+      "name": "Inorganic phosphate (Pi)",
+      "kind": "metabolite",
+      "scale": "molecular",
+      "description": "The other substrate. Combined with ADP at the catalytic site to form ATP.",
+      "aliases": ["Pi"]
+    }
+  ],
+  "processes": [
+    {
+      "id": "p_etc",
+      "name": "Electron transport and proton pumping",
+      "description": "Electrons from NADH (and FADH2) move down a chain of redox centres. The free energy released at Complexes I, III and IV is used to pump protons from the matrix into the intermembrane space.",
+      "inputs": ["nadh", "o2"],
+      "outputs": ["proton"],
+      "location": "inner_membrane",
+      "scale": "molecular"
+    },
+    {
+      "id": "p_pmf",
+      "name": "Establishment of proton-motive force",
+      "description": "Pumped protons accumulate in the intermembrane space. The result is a combined chemical and electrical gradient — the proton-motive force.",
+      "inputs": ["proton"],
+      "outputs": ["pmf"],
+      "location": "inner_membrane",
+      "scale": "cellular"
+    },
+    {
+      "id": "p_rotation",
+      "name": "Proton-driven rotation of F0",
+      "description": "Protons re-enter the matrix through the c-ring of F0. Each proton crossing rotates the rotor by one step.",
+      "inputs": ["pmf"],
+      "outputs": [],
+      "location": "atp_synthase",
+      "scale": "molecular"
+    },
+    {
+      "id": "p_synthesis",
+      "name": "ATP synthesis at F1",
+      "description": "Rotation of the central stalk forces conformational changes in the three catalytic β-subunits of F1. Each subunit cycles through open, loose and tight states (binding-change mechanism), binding ADP+Pi and releasing ATP.",
+      "inputs": ["adp", "pi"],
+      "outputs": ["atp"],
+      "location": "atp_synthase",
+      "scale": "molecular"
+    }
+  ],
+  "causal_edges": [
+    { "source": "nadh", "target": "p_etc", "relation": "donates electrons to", "confidence": "high" },
+    { "source": "o2", "target": "p_etc", "relation": "accepts electrons from", "confidence": "high" },
+    { "source": "p_etc", "target": "proton", "relation": "pumps", "confidence": "high" },
+    { "source": "proton", "target": "p_pmf", "relation": "accumulates as", "confidence": "high" },
+    { "source": "p_pmf", "target": "pmf", "relation": "produces", "confidence": "high" },
+    { "source": "pmf", "target": "p_rotation", "relation": "drives", "confidence": "high" },
+    { "source": "p_rotation", "target": "p_synthesis", "relation": "mechanically couples to", "confidence": "high" },
+    { "source": "adp", "target": "p_synthesis", "relation": "is substrate of", "confidence": "high" },
+    { "source": "pi", "target": "p_synthesis", "relation": "is substrate of", "confidence": "high" },
+    { "source": "p_synthesis", "target": "atp", "relation": "produces", "confidence": "high" },
+    { "source": "inner_membrane", "target": "pmf", "relation": "supports", "note": "Impermeability to protons is what allows the gradient to exist.", "confidence": "high" }
+  ],
+  "scales": ["molecular", "cellular"],
+  "prerequisites": [
+    { "concept": "Membranes are selectively permeable lipid bilayers.", "why": "Without an impermeable membrane, no proton gradient can be maintained." },
+    { "concept": "Free-energy difference can drive coupled chemical reactions.", "why": "ATP synthesis is endergonic on its own; it is paid for by the exergonic flow of protons down their gradient." },
+    { "concept": "Redox reactions move electrons from higher-energy to lower-energy carriers.", "why": "The ETC is a controlled cascade of redox steps." }
+  ],
+  "misconceptions": [
+    {
+      "wrong": "ATP synthase makes ATP directly from electrons.",
+      "right": "Electrons never enter ATP synthase. The ETC uses electron energy to pump protons; ATP synthase uses proton flow to make ATP.",
+      "why_it_sticks": "Textbook diagrams compress the chain and the synthase into one ribbon, hiding the energy-conversion step."
+    },
+    {
+      "wrong": "The proton gradient is just a pH difference.",
+      "right": "It is both chemical (pH) and electrical (membrane potential). The electrical part typically contributes more to the total free energy in mammalian mitochondria.",
+      "why_it_sticks": "Introductory courses often show only the H+ concentration arrow."
+    },
+    {
+      "wrong": "Each ATP is made by one proton.",
+      "right": "Each full rotation makes 3 ATP and requires roughly 8 protons (the c-ring stoichiometry varies by species).",
+      "why_it_sticks": "It is tempting to picture a 1:1 input-output for any molecular machine."
+    },
+    {
+      "wrong": "If oxygen runs out, ATP synthase keeps working as long as the gradient lasts.",
+      "right": "Briefly true, but with no electrons reaching O2 the ETC stops pumping; the gradient collapses within seconds and synthesis stops.",
+      "why_it_sticks": "The synthase and the chain look like independent boxes."
+    }
+  ],
+  "confidence_notes": [
+    {
+      "claim": "c-ring stoichiometry is exactly 8.",
+      "confidence": "medium",
+      "reason": "It varies between species (8–15). The mammalian value is ~8."
+    },
+    {
+      "claim": "The electrical component dominates the proton-motive force.",
+      "confidence": "medium",
+      "reason": "True for mammalian mitochondria under typical conditions; not universal."
+    }
+  ],
+  "provenance": [
+    { "source": "golden:bio-manim-lab/examples/atp_synthase", "confidence": "high", "note": "Hand-curated reference concept map for the vertical slice." }
+  ]
+}

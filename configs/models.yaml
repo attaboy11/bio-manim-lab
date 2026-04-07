@@ -1,0 +1,33 @@
+# Model selection per stage. Each stage may use a different model.
+# Only OpenAI is supported. If OPENAI_API_KEY is not set the pipeline falls
+# back to golden cached artifacts for known topics (e.g. ATP synthase).
+
+defaults:
+  provider: openai
+  model: gpt-4o-mini
+
+stages:
+  extract:
+    provider: openai
+    model: gpt-4o
+    temperature: 0.1
+  pedagogy:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.2
+  scenes:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.3
+  codegen:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.1
+  study:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.2
+  quant:
+    provider: openai
+    model: gpt-4o
+    temperature: 0.0

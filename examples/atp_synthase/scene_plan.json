@@ -1,0 +1,124 @@
+{
+  "topic": "ATP synthase and oxidative phosphorylation",
+  "scenes": [
+    {
+      "id": "s1_orientation",
+      "title": "Where this happens",
+      "teaching_goal": "Establish that everything occurs across the inner mitochondrial membrane and that the matrix and intermembrane space are two separate compartments.",
+      "biological_claims": [
+        "There is an inner mitochondrial membrane.",
+        "The matrix is on one side, the intermembrane space on the other.",
+        "The inner membrane is impermeable to protons except through ATP synthase."
+      ],
+      "visual_strategy": "schematic_mechanism",
+      "animation_steps": [
+        "Fade in a horizontal membrane line spanning the screen.",
+        "Label the lower region 'Matrix' and the upper region 'Intermembrane space'.",
+        "Add a small lock icon on the membrane labelled 'H+ impermeable'."
+      ],
+      "labels": ["Inner membrane", "Matrix", "Intermembrane space", "H+ impermeable"],
+      "narration_segment": "Everything we are about to see happens across this single membrane: the inner membrane of the mitochondrion. Below it is the matrix; above it is the intermembrane space. The crucial property of this membrane is that protons cannot leak across it.",
+      "estimated_duration": 18
+    },
+    {
+      "id": "s2_etc_pumping",
+      "title": "The chain pumps protons",
+      "teaching_goal": "Show that the electron transport chain uses electron energy to push protons from the matrix to the intermembrane space.",
+      "biological_claims": [
+        "Electrons from NADH enter the chain.",
+        "Each pumping complex moves protons from matrix to intermembrane space.",
+        "Oxygen accepts the spent electrons at the end of the chain."
+      ],
+      "visual_strategy": "schematic_mechanism",
+      "animation_steps": [
+        "Add three rectangles in the membrane labelled I, III, IV.",
+        "Spawn an electron dot at the left, animate it stepping through I → III → IV.",
+        "At each step, lift a proton from below the membrane and place it above.",
+        "At Complex IV, fade the electron into an O2 → H2O label."
+      ],
+      "labels": ["I", "III", "IV", "e-", "O2 → H2O"],
+      "narration_segment": "An electron from NADH enters Complex I and is passed down the chain. At each pumping complex, the energy released is used to lift a proton from the matrix to the intermembrane space. The electron is finally handed to oxygen, which is why oxygen is essential.",
+      "estimated_duration": 36
+    },
+    {
+      "id": "s3_gradient",
+      "title": "A gradient builds",
+      "teaching_goal": "Make the proton-motive force visible as a density and a polarity, not just a label.",
+      "biological_claims": [
+        "Protons accumulate in the intermembrane space.",
+        "The membrane develops both a chemical (pH) and an electrical (voltage) difference.",
+        "This stored difference is the proton-motive force."
+      ],
+      "visual_strategy": "gradient_field",
+      "animation_steps": [
+        "Spawn many small proton dots above the membrane and few below.",
+        "Show '+' on the upper side and '−' on the lower side of the membrane.",
+        "Label the whole picture 'proton-motive force'."
+      ],
+      "labels": ["+", "−", "proton-motive force"],
+      "narration_segment": "Protons pile up on the intermembrane side. The membrane is now both chemically and electrically polarised — a stored battery of free energy known as the proton-motive force.",
+      "estimated_duration": 22
+    },
+    {
+      "id": "s4_synthase_rotation",
+      "title": "Protons spin the rotor",
+      "teaching_goal": "Show that ATP synthase is the only legal way back across the membrane and that proton flow physically rotates a rotor.",
+      "biological_claims": [
+        "ATP synthase straddles the inner membrane.",
+        "Protons flow through F0, the membrane-embedded ring.",
+        "Each proton crossing rotates the rotor by one step."
+      ],
+      "visual_strategy": "schematic_mechanism",
+      "animation_steps": [
+        "Add an annulus in the membrane labelled 'F0' and a circle inside it (the rotor).",
+        "Animate proton dots dropping into F0 from above and re-emerging below.",
+        "Rotate the inner circle by a fixed angle on each proton crossing.",
+        "Add a vertical stalk from the rotor up into the matrix."
+      ],
+      "labels": ["F0", "rotor", "stalk"],
+      "narration_segment": "ATP synthase is the only legal door home. Protons flow back through its membrane ring, F0, and each crossing rotates an internal rotor by one step. A central stalk turns with the rotor.",
+      "estimated_duration": 28
+    },
+    {
+      "id": "s5_f1_synthesis",
+      "title": "Rotation makes ATP",
+      "teaching_goal": "Connect rotation to chemistry via the binding-change mechanism.",
+      "biological_claims": [
+        "Rotation forces conformational changes in three catalytic β-subunits.",
+        "Each subunit cycles through open, loose and tight states.",
+        "ADP and Pi bind in the loose state and are released as ATP from the open state."
+      ],
+      "visual_strategy": "state_diagram",
+      "animation_steps": [
+        "Above the stalk, draw the F1 head as three arc segments around the stalk.",
+        "Color the three segments to mark Open, Loose, Tight.",
+        "Animate ADP+Pi entering the Loose segment, becoming ATP in Tight, exiting at Open.",
+        "Cycle the three colors as the stalk rotates."
+      ],
+      "labels": ["F1", "ADP+Pi", "ATP", "Loose", "Tight", "Open"],
+      "narration_segment": "Each rotation forces the three catalytic sites of the F1 head through three states. ADP and phosphate bind in the loose state, are squeezed together in the tight state, and ATP is released from the open state. Mechanical rotation has been turned into a chemical bond.",
+      "estimated_duration": 32
+    },
+    {
+      "id": "s6_relevance_failure",
+      "title": "When it breaks",
+      "teaching_goal": "Show what happens when the system is perturbed and connect it to human relevance.",
+      "biological_claims": [
+        "Cyanide blocks Complex IV: electrons stop, gradient collapses.",
+        "Uncouplers like DNP put a hole in the membrane: gradient collapses, ATP synthesis stops.",
+        "Oxidative phosphorylation produces ~90% of cellular ATP."
+      ],
+      "visual_strategy": "comparative_split",
+      "animation_steps": [
+        "Split the screen into two panels showing the same membrane.",
+        "Left panel: an X over Complex IV, electrons backing up, protons emptying back across.",
+        "Right panel: a hole punched in the membrane, protons leaking through.",
+        "In both panels, ATP synthase stops producing ATP."
+      ],
+      "labels": ["cyanide", "uncoupler", "no ATP"],
+      "narration_segment": "Block Complex IV with cyanide and the chain stops pumping. Punch a hole in the membrane with an uncoupler and the gradient leaks away. Either way, ATP synthase stops. About ninety percent of the ATP your body uses every day comes from this one mechanism, which is why these failures kill so quickly.",
+      "estimated_duration": 30
+    }
+  ],
+  "total_estimated_duration": 166
+}

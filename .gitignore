@@ -1,0 +1,27 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Build / deploy
+.vercel/
+dist/
+build/
+node_modules/
+
+# Pipeline outputs (runtime artifacts, not source)
+outputs/
+
+# OS
+.DS_Store
+Thumbs.db

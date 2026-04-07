@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>bio-manim-lab</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121822;
+      --panel2: #1a2230;
+      --fg: #e6edf3;
+      --muted: #8b98a8;
+      --accent: #7cc3ff;
+      --accent2: #a6ff9a;
+      --border: #243144;
+      --err: #ff8c8c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; }
+    header { padding: 40px 24px 16px; text-align: center; }
+    header h1 { margin: 0; font-size: 28px; letter-spacing: -0.3px; }
+    header p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    main { max-width: 960px; margin: 0 auto; padding: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; margin-bottom: 16px; }
+    form { display: flex; gap: 8px; flex-wrap: wrap; }
+    input[type=text] { flex: 1; min-width: 260px; background: var(--panel2); color: var(--fg);
+      border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 15px; }
+    input[type=text]:focus { outline: none; border-color: var(--accent); }
+    button { background: var(--accent); color: #001322; border: 0; border-radius: 8px;
+      padding: 12px 18px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .examples button { background: var(--panel2); color: var(--fg); font-weight: 400;
+      border: 1px solid var(--border); padding: 6px 10px; font-size: 13px; }
+    .status { color: var(--muted); font-size: 13px; margin-top: 12px; min-height: 20px; }
+    .error { color: var(--err); }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+      overflow-x: auto; }
+    .tab { background: none; color: var(--muted); border: 0; border-bottom: 2px solid transparent;
+      padding: 10px 14px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    pre { background: #07090d; border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px; overflow-x: auto; max-height: 520px; font-size: 12.5px;
+      font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; line-height: 1.5; }
+    .pill { display: inline-block; background: var(--panel2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted);
+      margin-right: 6px; }
+    .download { display: inline-block; margin-left: 8px; font-size: 12px; color: var(--accent); cursor: pointer; }
+    .download:hover { text-decoration: underline; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; }
+    footer a { color: var(--muted); }
+    h2 { font-size: 15px; margin: 0 0 8px; color: var(--muted); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>bio-manim-lab</h1>
+    <p>Turn a biology topic into a full teaching pack — concept map, lesson outline, Manim scene plan, script, and study assets.</p>
+  </header>
+  <main>
+    <div class="card">
+      <form id="f">
+        <input id="topic" type="text" placeholder="e.g. ATP synthase and oxidative phosphorylation" required />
+        <button id="go" type="submit">Generate</button>
+      </form>
+      <div class="examples">
+        <button type="button" data-ex="ATP synthase and oxidative phosphorylation">ATP synthase</button>
+        <button type="button" data-ex="The sodium-potassium pump">Na/K pump</button>
+        <button type="button" data-ex="How CRISPR-Cas9 cuts DNA">CRISPR-Cas9</button>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div id="result" class="card" style="display:none">
+      <div id="meta" style="margin-bottom:12px"></div>
+      <div class="tabs" id="tabs"></div>
+      <div id="panes"></div>
+    </div>
+  </main>
+  <footer>
+    Powered by OpenAI · Generated artifacts are deterministic pipeline outputs (concept map → lesson → scenes → Manim script → study pack).
+  </footer>
+
+  <script>
+    const $ = (q) => document.querySelector(q);
+    const statusEl = $("#status");
+    const resultEl = $("#result");
+    const tabsEl = $("#tabs");
+    const panesEl = $("#panes");
+    const metaEl = $("#meta");
+
+    document.querySelectorAll(".examples button").forEach(b => {
+      b.addEventListener("click", () => { $("#topic").value = b.dataset.ex; });
+    });
+
+    function download(filename, content, mime) {
+      const blob = new Blob([content], { type: mime || "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function render(data) {
+      resultEl.style.display = "block";
+      const a = data.artifacts;
+      metaEl.innerHTML =
+        `<span class="pill">topic: ${escapeHtml(data.topic)}</span>` +
+        `<span class="pill">run: ${escapeHtml(data.run_id)}</span>` +
+        `<span class="pill">${new Date(data.generated_at).toLocaleString()}</span>`;
+
+      const pretty = (o) => JSON.stringify(o, null, 2);
+      const tabs = [
+        ["Concept map",  "concept_map.json",  pretty(a.concept_map),  "application/json"],
+        ["Lesson",       "lesson_outline.md", a.lesson_outline_md || "", "text/markdown"],
+        ["Scenes",       "scene_plan.json",   pretty(a.scene_plan),   "application/json"],
+        ["Narration",    "narration.md",      a.narration_md || "",   "text/markdown"],
+        ["Manim script", "manim_script.py",   a.manim_script || "",   "text/x-python"],
+        ["Summary",      "summary.md",        a.study?.summary_md || "", "text/markdown"],
+        ["Flashcards",   "flashcards.json",   pretty(a.study?.flashcards),  "application/json"],
+        ["Quiz",         "quiz.json",         pretty(a.study?.quiz),        "application/json"],
+      ];
+
+      tabsEl.innerHTML = tabs.map((t, i) =>
+        `<button class="tab ${i===0?'active':''}" data-i="${i}">${t[0]}</button>`).join("");
+      panesEl.innerHTML = tabs.map((t, i) =>
+        `<div class="pane" data-i="${i}" style="display:${i===0?'block':'none'}">
+           <h2>${escapeHtml(t[1])} <span class="download" data-dl="${i}">download</span></h2>
+           <pre>${escapeHtml(t[2] || "(empty)")}</pre>
+         </div>`).join("");
+
+      tabsEl.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+        const i = +b.dataset.i;
+        tabsEl.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", +x.dataset.i === i));
+        panesEl.querySelectorAll(".pane").forEach(x => x.style.display = (+x.dataset.i === i) ? "block" : "none");
+      }));
+      panesEl.querySelectorAll(".download").forEach(b => b.addEventListener("click", () => {
+        const i = +b.dataset.dl; download(tabs[i][1], tabs[i][2], tabs[i][3]);
+      }));
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    $("#f").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const topic = $("#topic").value.trim();
+      if (!topic) return;
+      $("#go").disabled = true;
+      statusEl.textContent = "Running pipeline (ingest → extract → pedagogy → scenes → codegen → study)… up to ~60s";
+      statusEl.classList.remove("error");
+      resultEl.style.display = "none";
+      try {
+        const r = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic }),
+        });
+        const data = await r.json();
+        if (!r.ok || !data.ok) {
+          throw new Error(data.error || ("HTTP " + r.status));
+        }
+        statusEl.textContent = "✓ Done. " + Object.keys(data.artifacts).length + " artifact groups.";
+        render(data);
+      } catch (e) {
+        statusEl.textContent = "✗ " + e.message;
+        statusEl.classList.add("error");
+      } finally {
+        $("#go").disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

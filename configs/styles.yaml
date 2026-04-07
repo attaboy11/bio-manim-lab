@@ -1,0 +1,33 @@
+# Visual language. The same vocabulary is used across every topic so the
+# learner can pattern-match across scenes.
+
+palette:
+  background: "#0b0d12"
+  membrane: "#7a8aa6"
+  membrane_inner: "#3a4660"
+  cytosol: "#152033"
+  matrix: "#1a2840"
+  proton: "#f0c750"
+  electron: "#5fc7e0"
+  energy_high: "#ff6f61"
+  energy_low: "#4bb47b"
+  protein: "#a37bc4"
+  protein_alt: "#c47b9b"
+  arrow_causal: "#ffffff"
+  arrow_flow: "#5fc7e0"
+  text_primary: "#f5f5f5"
+  text_dim: "#9aa3b2"
+
+typography:
+  title_size: 48
+  label_size: 24
+  caption_size: 18
+
+rules:
+  membranes_are_boundaries: true
+  gradients_visible: true
+  arrows_mean_causation_or_flow: true
+  same_object_same_style: true
+  reveal_progressively: true
+  sparse_labels: true
+  no_decorative_nonsense: true

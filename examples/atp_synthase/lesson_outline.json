@@ -1,0 +1,38 @@
+{
+  "topic": "ATP synthase and oxidative phosphorylation",
+  "one_paragraph_intuition": "Cells need a usable form of energy, and almost every cell on Earth makes it the same way: by pumping protons across a membrane and then letting them fall back through a tiny rotary machine. The electron transport chain in the inner mitochondrial membrane uses the energy of electrons stripped from food to push protons out of the matrix. The result is a proton gradient — a chemical and electrical pressure difference across the membrane. ATP synthase is the only legal door home for those protons; as they flow through it, they spin a rotor that mechanically forces the catalytic head to bind ADP and phosphate and squeeze them together into ATP. Oxygen's only job is to sit at the end of the electron chain and accept the spent electrons, which is why you suffocate within minutes without it.",
+  "mechanism_steps": [
+    "NADH delivers high-energy electrons to Complex I of the electron transport chain.",
+    "Complexes I, III and IV use the energy released by electron transfer to pump protons from the matrix into the intermembrane space.",
+    "The inner membrane is impermeable to protons, so they accumulate, building a chemical and electrical gradient: the proton-motive force.",
+    "The only way back is through the F0 ring of ATP synthase, which sits in the membrane.",
+    "Each proton that crosses rotates the F0 c-ring by one step.",
+    "The c-ring is rigidly connected to a central stalk inside the F1 head; the stalk turns with it.",
+    "Rotation of the stalk forces each of three catalytic β-subunits through open, loose and tight states (the binding-change mechanism).",
+    "In the loose state ADP and Pi bind; in the tight state they are squeezed into ATP; in the open state ATP is released.",
+    "Oxygen at Complex IV accepts the spent electrons, regenerating the chain. No O2 → no electron flow → no proton pumping → no ATP."
+  ],
+  "why_it_matters": "Oxidative phosphorylation produces about 90% of the ATP your body uses every day. Drugs, poisons and inherited disorders that target any single piece of this chain (cyanide blocks Complex IV; uncouplers like DNP collapse the gradient; mitochondrial diseases impair the ETC) cause symptoms within minutes to hours. Understanding it is foundational for everything from pharmacology to ageing biology to metabolic disease.",
+  "common_confusions": [
+    "Thinking ATP synthase makes ATP from electrons. Electrons never touch the synthase.",
+    "Picturing the gradient as only a pH difference. It is also an electrical voltage, and that voltage often does most of the work.",
+    "Assuming each proton makes one ATP. The synthase needs ~8 protons per full rotation, and each rotation makes 3 ATP.",
+    "Treating the chain and the synthase as independent. Without electrons reaching O2, the gradient collapses in seconds.",
+    "Forgetting that the membrane's impermeability to protons is doing real work. No barrier, no gradient, no ATP."
+  ],
+  "checkpoint_questions": [
+    "Walk a single electron from NADH to water and name what its energy is used for.",
+    "Why does cyanide kill so quickly?",
+    "If you put a hole in the inner mitochondrial membrane, what happens to ATP production and why?",
+    "What would change if a mutant ATP synthase had a c-ring of 10 instead of 8?",
+    "Is the proton-motive force more chemical or more electrical, and what does that tell you about its energy?",
+    "Why does ATP synthase rotate, and how does rotation produce a chemical bond?"
+  ],
+  "key_takeaways": [
+    "Energy is transduced twice: first into a proton gradient, then into a chemical bond.",
+    "ATP synthase is a literal rotary machine — biology's only known one besides the bacterial flagellum.",
+    "The membrane's impermeability is a load-bearing assumption; remove it and the whole system stops.",
+    "Oxygen is upstream of ATP synthase, not downstream of it — its job is to keep the chain unclogged.",
+    "The mechanism generalises: anywhere a cell uses an ion gradient to do work, the same logic applies."
+  ]
+}
