@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+import threading
 
 from biomanim.ingest import ingest
 from biomanim.models import ConceptMap, LessonOutline
+from biomanim.supervisor import _timeout
 from biomanim.utils import llm
 
 
@@ -73,3 +75,19 @@ def test_call_structured_repairs_schema_mismatch(monkeypatch):
         artifact_name="lesson_outline.json",
     )
     assert outline.key_takeaways == ["Guide RNA directs Cas9 to a matching DNA sequence."]
+
+
+def test_timeout_context_is_safe_off_main_thread():
+    errors: list[Exception] = []
+
+    def _worker():
+        try:
+            with _timeout(1):
+                pass
+        except Exception as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    thread = threading.Thread(target=_worker)
+    thread.start()
+    thread.join()
+    assert errors == []

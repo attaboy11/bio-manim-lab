@@ -11,6 +11,7 @@ from __future__ import annotations
 import signal
 import time
 import traceback
+import threading
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable, TypeVar
@@ -96,17 +97,22 @@ class Supervisor:
 @contextmanager
 def _timeout(seconds: int):
     """Best-effort SIGALRM timeout. Falls back to no-op on platforms without it."""
-    if not hasattr(signal, "SIGALRM"):
+    if not hasattr(signal, "SIGALRM") or threading.current_thread() is not threading.main_thread():
         yield
         return
 
     def _handler(signum, frame):  # noqa: ARG001
         raise StageTimeout()
 
-    old = signal.signal(signal.SIGALRM, _handler)
-    signal.alarm(seconds)
     try:
+        old = signal.signal(signal.SIGALRM, _handler)
+        signal.alarm(seconds)
+        yield
+    except ValueError:
         yield
     finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, old)
+        try:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old)
+        except Exception:  # noqa: BLE001
+            pass
