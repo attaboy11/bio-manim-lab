@@ -389,7 +389,10 @@ except ImportError:
         lines = [_strip_inline(ln) for ln in lines]
 
         root: Any = {}
-        stack: list[tuple[int, Any]] = [(-1, root)]
+        # Each frame: (indent, container, parent_container, parent_key)
+        # parent_container and parent_key let us replace a tentative empty dict
+        # with a list when we later see that the key's value is actually a list.
+        stack: list[tuple[int, Any, Any, Any]] = [(-1, root, None, None)]
 
         def _cast(v: str) -> Any:
             s = v.strip()
@@ -416,21 +419,29 @@ except ImportError:
             content = ln.strip()
             while stack and stack[-1][0] >= indent:
                 stack.pop()
-            parent = stack[-1][1]
+            frame_indent, parent, gp_container, gp_key = stack[-1]
 
             if content.startswith("- "):
                 item = content[2:]
+                # Promote a tentative empty dict to a list if needed.
+                if isinstance(parent, dict) and not parent and gp_container is not None:
+                    new_list: list = []
+                    if isinstance(gp_container, dict):
+                        gp_container[gp_key] = new_list
+                    elif isinstance(gp_container, list):
+                        gp_container[gp_key] = new_list
+                    parent = new_list
+                    stack[-1] = (frame_indent, new_list, gp_container, gp_key)
                 if not isinstance(parent, list):
-                    # Convert last key of grand-parent from None to list
-                    # This branch is only reached if the parent mapping expected a list.
                     raise ValueError(f"list item without list parent: {ln!r}")
                 if ":" in item and not (item.startswith('"') or item.startswith("'")):
                     key, _, rest = item.partition(":")
+                    key = key.strip()
                     obj: dict = {}
-                    obj[key.strip()] = _cast(rest) if rest.strip() else {}
+                    obj[key] = _cast(rest) if rest.strip() else {}
                     parent.append(obj)
                     if not rest.strip():
-                        stack.append((indent + 2, obj[key.strip()]))
+                        stack.append((indent + 2, obj[key], obj, key))
                 else:
                     parent.append(_cast(item))
                 continue
@@ -442,10 +453,9 @@ except ImportError:
                 if not isinstance(parent, dict):
                     raise ValueError(f"mapping entry without dict parent: {ln!r}")
                 if rest == "":
-                    # Could be dict or list; defer decision.
-                    new: dict | list = {}
+                    new: dict = {}
                     parent[key] = new
-                    stack.append((indent, new))
+                    stack.append((indent, new, parent, key))
                 else:
                     parent[key] = _cast(rest)
                 continue
