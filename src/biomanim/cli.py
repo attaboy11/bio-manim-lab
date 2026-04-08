@@ -17,6 +17,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from .utils.runtime import load_dotenv_if_present
+
+load_dotenv_if_present()
+
 try:
     import typer  # type: ignore
 except ImportError:

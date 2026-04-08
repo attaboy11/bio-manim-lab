@@ -3,39 +3,92 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>bio-manim-lab</title>
+  <title>BIO-MANIM-LAB</title>
   <style>
     :root {
-      --bg: #0b0f14;
-      --panel: #121822;
-      --panel2: #1a2230;
-      --fg: #e6edf3;
-      --muted: #8b98a8;
-      --accent: #7cc3ff;
-      --accent2: #a6ff9a;
-      --border: #243144;
-      --err: #ff8c8c;
+      --bg: #071018;
+      --bg2: #0d1c27;
+      --panel: rgba(14, 23, 31, 0.9);
+      --panel2: rgba(24, 36, 48, 0.96);
+      --fg: #edf4f7;
+      --muted: #9db2bc;
+      --accent: #8fe0b2;
+      --accent2: #f4ca7f;
+      --border: rgba(137, 177, 192, 0.22);
+      --err: #ff9b9b;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
-      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; }
-    header { padding: 40px 24px 16px; text-align: center; }
-    header h1 { margin: 0; font-size: 28px; letter-spacing: -0.3px; }
-    header p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
-    main { max-width: 960px; margin: 0 auto; padding: 24px; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-      padding: 20px; margin-bottom: 16px; }
-    form { display: flex; gap: 8px; flex-wrap: wrap; }
-    input[type=text] { flex: 1; min-width: 260px; background: var(--panel2); color: var(--fg);
-      border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 15px; }
-    input[type=text]:focus { outline: none; border-color: var(--accent); }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(143, 224, 178, 0.16), transparent 32%),
+        radial-gradient(circle at 85% 10%, rgba(244, 202, 127, 0.14), transparent 22%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--fg);
+      font: 15px/1.6 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    }
+    header { padding: 56px 24px 20px; text-align: center; }
+    header h1 {
+      margin: 0;
+      font: 700 38px/1.05 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    header p { margin: 10px auto 0; color: var(--muted); font-size: 15px; max-width: 720px; }
+    main { max-width: 980px; margin: 0 auto; padding: 20px 24px 36px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+    .eyebrow {
+      color: var(--accent2);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+    .lede {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .lede p { margin: 0; }
+    .mini-list {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    form { display: grid; gap: 10px; }
+    input[type=text], textarea {
+      width: 100%;
+      background: var(--panel2);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 15px;
+      font-size: 15px;
+      resize: vertical;
+    }
+    textarea { min-height: 132px; }
+    input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     button { background: var(--accent); color: #001322; border: 0; border-radius: 8px;
       padding: 12px 18px; font-size: 15px; font-weight: 600; cursor: pointer; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
     .examples button { background: var(--panel2); color: var(--fg); font-weight: 400;
       border: 1px solid var(--border); padding: 6px 10px; font-size: 13px; }
-    .status { color: var(--muted); font-size: 13px; margin-top: 12px; min-height: 20px; }
+    .status { color: var(--muted); font-size: 13px; min-height: 20px; }
     .error { color: var(--err); }
     .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
       overflow-x: auto; }
@@ -50,28 +103,50 @@
       margin-right: 6px; }
     .download { display: inline-block; margin-left: 8px; font-size: 12px; color: var(--accent); cursor: pointer; }
     .download:hover { text-decoration: underline; }
-    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 12px 24px 32px; }
     footer a { color: var(--muted); }
     h2 { font-size: 15px; margin: 0 0 8px; color: var(--muted); font-weight: 500; }
+    .helper {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 820px) {
+      .lede { grid-template-columns: 1fr; }
+      header h1 { font-size: 32px; }
+      main { padding: 16px 16px 32px; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>bio-manim-lab</h1>
-    <p>Turn a biology topic into a full teaching pack — concept map, lesson outline, Manim scene plan, script, and study assets.</p>
+    <h1>BIO-MANIM-LAB</h1>
+    <p>A biology teaching compiler: turn a topic or pasted notes into a concept map, lesson outline, scene plan, Manim script, and study pack.</p>
   </header>
   <main>
     <div class="card">
+      <div class="eyebrow">Focused Vertical Slice</div>
+      <div class="lede">
+        <p>This stays deliberately narrow. Canonical topics can use cached, deterministic artifacts. New topics use live model generation when available.</p>
+        <div class="mini-list">
+          <div>Concept map → lesson → scenes → script → study assets</div>
+          <div>Use a topic, pasted notes, or both</div>
+          <div>No auth, no dashboards, no fluff</div>
+        </div>
+      </div>
       <form id="f">
-        <input id="topic" type="text" placeholder="e.g. ATP synthase and oxidative phosphorylation" required />
-        <button id="go" type="submit">Generate</button>
+        <input id="topic" type="text" placeholder="Biology topic, e.g. ATP synthase and oxidative phosphorylation" />
+        <textarea id="notes" placeholder="Optional notes, textbook excerpt, or pasted paper paragraph"></textarea>
+        <div class="actions">
+          <button id="go" type="submit">Generate</button>
+          <div class="helper">Leave topic blank if your notes already start with a clear topic line.</div>
+        </div>
       </form>
       <div class="examples">
         <button type="button" data-ex="ATP synthase and oxidative phosphorylation">ATP synthase</button>
         <button type="button" data-ex="The sodium-potassium pump">Na/K pump</button>
         <button type="button" data-ex="How CRISPR-Cas9 cuts DNA">CRISPR-Cas9</button>
       </div>
-      <div id="status" class="status"></div>
+      <div id="status" class="status" aria-live="polite"></div>
     </div>
 
     <div id="result" class="card" style="display:none">
@@ -87,13 +162,18 @@
   <script>
     const $ = (q) => document.querySelector(q);
     const statusEl = $("#status");
+    const topicEl = $("#topic");
+    const notesEl = $("#notes");
     const resultEl = $("#result");
     const tabsEl = $("#tabs");
     const panesEl = $("#panes");
     const metaEl = $("#meta");
 
     document.querySelectorAll(".examples button").forEach(b => {
-      b.addEventListener("click", () => { $("#topic").value = b.dataset.ex; });
+      b.addEventListener("click", () => {
+        topicEl.value = b.dataset.ex;
+        if (!notesEl.value.trim()) notesEl.focus();
+      });
     });
 
     function download(filename, content, mime) {
@@ -110,6 +190,8 @@
       metaEl.innerHTML =
         `<span class="pill">topic: ${escapeHtml(data.topic)}</span>` +
         `<span class="pill">run: ${escapeHtml(data.run_id)}</span>` +
+        `<span class="pill">mode: ${escapeHtml(data.generation_mode === 'golden' ? 'cached canonical' : 'live synthesis')}</span>` +
+        `<span class="pill">input: ${escapeHtml(data.input_source || 'topic')}</span>` +
         `<span class="pill">${new Date(data.generated_at).toLocaleString()}</span>`;
 
       const pretty = (o) => JSON.stringify(o, null, 2);
@@ -149,23 +231,29 @@
 
     $("#f").addEventListener("submit", async (ev) => {
       ev.preventDefault();
-      const topic = $("#topic").value.trim();
-      if (!topic) return;
+      const topic = topicEl.value.trim();
+      const notes = notesEl.value.trim();
+      if (!topic && !notes) {
+        statusEl.textContent = "Enter a topic, notes, or both.";
+        statusEl.classList.add("error");
+        return;
+      }
       $("#go").disabled = true;
-      statusEl.textContent = "Running pipeline (ingest → extract → pedagogy → scenes → codegen → study)… up to ~60s";
+      statusEl.textContent = "Running pipeline (ingest → extract → pedagogy → scenes → codegen → study)…";
       statusEl.classList.remove("error");
       resultEl.style.display = "none";
       try {
         const r = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic }),
+          body: JSON.stringify({ topic, notes }),
         });
         const data = await r.json();
         if (!r.ok || !data.ok) {
           throw new Error(data.error || ("HTTP " + r.status));
         }
-        statusEl.textContent = "✓ Done. " + Object.keys(data.artifacts).length + " artifact groups.";
+        const mode = data.generation_mode === "golden" ? "cached canonical run" : "live model run";
+        statusEl.textContent = "✓ Done. " + Object.keys(data.artifacts).length + " artifact groups from a " + mode + ".";
         render(data);
       } catch (e) {
         statusEl.textContent = "✗ " + e.message;

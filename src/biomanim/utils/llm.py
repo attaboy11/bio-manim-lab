@@ -18,8 +18,9 @@ import os
 from pathlib import Path
 from typing import Type, TypeVar
 
-from .._compat import BaseModel
-from .io import EXAMPLES_DIR, PROMPTS_DIR, slug, read_text
+from .._compat import BaseModel, ValidationError
+from .io import EXAMPLES_DIR, PROMPTS_DIR, load_default_config, slug, read_text
+from .runtime import load_dotenv_if_present
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -37,13 +38,48 @@ def load_prompt(relpath: str) -> str:
 
 
 def _provider() -> str:
+    load_dotenv_if_present()
     explicit = os.environ.get("BIOMANIM_LLM_PROVIDER")
     if explicit:
         return explicit.lower()
-    # Auto-detect: if a key is present, use openai; otherwise golden.
+    cfg = load_default_config().get("llm", {})
+    configured = str(cfg.get("provider", "auto")).strip().lower()
+    return configured or "auto"
+
+
+def _model() -> str:
+    load_dotenv_if_present()
+    cfg = load_default_config().get("llm", {})
+    return str(os.environ.get("BIOMANIM_LLM_MODEL") or cfg.get("model") or "gpt-4o-mini")
+
+
+def _timeout_seconds() -> float:
+    load_dotenv_if_present()
+    cfg = load_default_config().get("llm", {})
+    raw = os.environ.get("BIOMANIM_LLM_TIMEOUT") or cfg.get("timeout_seconds") or 120
+    return float(raw)
+
+
+def _temperature() -> float:
+    load_dotenv_if_present()
+    cfg = load_default_config().get("llm", {})
+    raw = os.environ.get("BIOMANIM_LLM_TEMPERATURE") or cfg.get("temperature") or 0.2
+    return float(raw)
+
+
+def artifact_strategy(topic: str, artifact_name: str) -> str:
+    """Return the preferred artifact source for this topic."""
+    provider = _provider()
+    has_golden = _resolve_golden(topic, artifact_name) is not None
+    if provider == "golden":
+        return "golden"
+    if provider == "auto" and has_golden:
+        return "golden"
     if os.environ.get("OPENAI_API_KEY"):
         return "openai"
-    return "golden"
+    if has_golden:
+        return "golden"
+    return "missing"
 
 
 def _candidate_golden_dirs(topic: str) -> list[Path]:
@@ -126,9 +162,9 @@ def call_structured(
 
     Raises LLMError if neither path is available.
     """
-    provider = _provider()
+    strategy = artifact_strategy(topic, artifact_name)
 
-    if provider == "golden" or not os.environ.get("OPENAI_API_KEY"):
+    if strategy == "golden":
         cached = golden_lookup(topic, artifact_name)
         if cached is not None:
             return schema.model_validate(cached)
@@ -137,6 +173,13 @@ def call_structured(
             f"topic={topic!r} artifact={artifact_name!r}. "
             f"Set OPENAI_API_KEY in .env, or pre-bake "
             f"examples/<slug>/{artifact_name}."
+        )
+
+    if strategy != "openai":
+        raise LLMError(
+            f"No LLM provider available for topic={topic!r} artifact={artifact_name!r}. "
+            f"Set OPENAI_API_KEY, use BIOMANIM_LLM_PROVIDER=golden for canonical topics, "
+            f"or pre-bake examples/<slug>/{artifact_name}."
         )
 
     template = load_prompt(prompt_path)
@@ -150,23 +193,36 @@ def call_structured(
     )
 
     raw = _call_openai(full_prompt, want_json=True)
-    raw = _strip_code_fences(raw)
     try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise LLMError(f"LLM returned non-JSON: {e}\n--- raw ---\n{raw[:1000]}")
-    return schema.model_validate(data)
+        return _validate_structured_payload(schema=schema, raw=raw)
+    except LLMError as first_error:
+        repaired = _repair_structured_payload(
+            schema_json=schema_json,
+            validation_error=str(first_error),
+            invalid_payload=raw,
+        )
+        try:
+            return _validate_structured_payload(schema=schema, raw=repaired)
+        except LLMError as second_error:
+            raise LLMError(
+                f"{first_error}\nRepair attempt failed: {second_error}"
+            ) from None
 
 
 def call_text(*, prompt_path: str, user_inputs: dict, topic: str, artifact_name: str) -> str:
     """Like `call_structured` but for free-text artifacts (markdown, etc)."""
-    if _provider() == "golden" or not os.environ.get("OPENAI_API_KEY"):
+    strategy = artifact_strategy(topic, artifact_name)
+    if strategy == "golden":
         cached = golden_text_lookup(topic, artifact_name)
         if cached is not None:
             return cached
         raise LLMError(
             f"No OPENAI_API_KEY set and no golden text for topic={topic!r} "
             f"artifact={artifact_name!r}."
+        )
+    if strategy != "openai":
+        raise LLMError(
+            f"No text-generation provider available for topic={topic!r} artifact={artifact_name!r}."
         )
 
     template = load_prompt(prompt_path)
@@ -186,7 +242,30 @@ def _strip_code_fences(raw: str) -> str:
     return s.strip()
 
 
-def _call_openai(prompt: str, *, want_json: bool) -> str:
+def _validate_structured_payload(*, schema: Type[T], raw: str) -> T:
+    payload = _strip_code_fences(raw)
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError as e:
+        raise LLMError(f"LLM returned non-JSON: {e}\n--- raw ---\n{payload[:1000]}")
+    try:
+        return schema.model_validate(data)
+    except ValidationError as e:
+        raise LLMError(f"LLM returned JSON that failed schema validation: {e}") from e
+
+
+def _repair_structured_payload(*, schema_json: str, validation_error: str, invalid_payload: str) -> str:
+    template = load_prompt("shared/structured_repair.md")
+    repair_prompt = (
+        f"{template}\n\n"
+        f"## Required JSON Schema\n```json\n{schema_json}\n```\n\n"
+        f"## Validation error\n```text\n{validation_error}\n```\n\n"
+        f"## Invalid JSON or response\n```json\n{_strip_code_fences(invalid_payload)}\n```"
+    )
+    return _call_openai(repair_prompt, want_json=True, temperature=0.0)
+
+
+def _call_openai(prompt: str, *, want_json: bool, temperature: float | None = None) -> str:
     try:
         from openai import OpenAI  # type: ignore
     except ImportError as e:
@@ -194,13 +273,14 @@ def _call_openai(prompt: str, *, want_json: bool) -> str:
             "openai SDK not installed. Run: pip install 'biomanim[llm]'"
         ) from e
 
-    timeout = float(os.environ.get("BIOMANIM_LLM_TIMEOUT", "120"))
-    model = os.environ.get("BIOMANIM_LLM_MODEL", "gpt-4o-mini")
+    timeout = _timeout_seconds()
+    model = _model()
     client = OpenAI(timeout=timeout)
 
     kwargs: dict = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
+        "temperature": _temperature() if temperature is None else temperature,
     }
     if want_json:
         kwargs["response_format"] = {"type": "json_object"}

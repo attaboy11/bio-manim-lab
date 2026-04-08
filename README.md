@@ -26,12 +26,16 @@ pip install "manim>=0.18"
 
 The pipeline is local-first. It runs without any LLM API key by falling back
 to **golden cached outputs** for known topics (currently: ATP synthase). Set
-`OPENAI_API_KEY` in `.env` to enable real LLM calls for new topics.
+`OPENAI_API_KEY` in `.env` to enable real LLM calls for new topics. The CLI and
+Vercel API now auto-load `.env` if it is present. The default provider mode is
+`auto`, which prefers canonical cached artifacts when they exist and uses
+OpenAI for new topics when a key is available.
 
 ## Run the vertical slice
 
 ```bash
 python -m biomanim run --topic "ATP synthase and oxidative phosphorylation"
+python -m biomanim run --input ./notes/membrane-transport.md
 ```
 
 This produces, under `outputs/<run_id>/`:
@@ -108,3 +112,18 @@ biology. A web app with auth, billing, and growth hacks before the core works.
 
 It must stay focused on one thing: helping the user achieve deep biological
 understanding quickly and reliably.
+
+## Thin web wrapper
+
+The Vercel wrapper remains intentionally small. It exposes:
+
+```bash
+POST /api/generate
+{
+  "topic": "optional topic",
+  "notes": "optional pasted notes or excerpt"
+}
+```
+
+The canonical ATP synthase path should complete from cached artifacts even when
+an API key is configured.

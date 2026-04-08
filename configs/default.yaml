@@ -7,7 +7,7 @@ run:
   fail_fast: false          # if false, supervisor will retry once per stage
 
 llm:
-  provider: openai          # openai | golden
+  provider: auto            # auto | openai | golden
   model: gpt-4o-mini
   timeout_seconds: 120
   max_retries: 1
