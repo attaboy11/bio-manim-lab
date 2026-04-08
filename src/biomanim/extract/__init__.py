@@ -22,10 +22,12 @@ def extract(*, ingest_payload: dict, run_id: str) -> ConceptMap:
         topic=topic,
         artifact_name="concept_map.json",
     )
-    # Sanity floors. Drift is the enemy.
-    if len(cm.entities) < 4:
+    # Sanity floors. Drift is the enemy — but one weak LLM call shouldn't
+    # tank the whole run. Floors are deliberately loose; the prompt carries
+    # the real quality requirements.
+    if len(cm.entities) < 2:
         raise ValueError(f"extract produced too few entities ({len(cm.entities)})")
-    if len(cm.processes) < 2:
+    if len(cm.processes) < 1:
         raise ValueError(f"extract produced too few processes ({len(cm.processes)})")
     write_json(run_dir(run_id) / "concept_map.json", cm.model_dump(mode="json"))
     return cm

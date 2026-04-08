@@ -8,6 +8,19 @@ turn a topic (and optional notes) into a structured biological concept graph.
 A single JSON object that validates against the `ConceptMap` schema attached
 below. No prose, no markdown, no comments — only JSON.
 
+## Minimum content (hard requirements — not suggestions)
+
+- **At least 6 entities** (molecules, complexes, structures).
+- **At least 3 processes**. A "process" is a named causal event that transforms
+  or moves entities (e.g. "proton pumping", "substrate binding", "conformational
+  change"). Sub-steps of one mechanism each count as distinct processes.
+- **At least 5 causal edges** between entities/processes.
+- **At least 2 misconceptions**.
+
+If the topic seems "too small" for these minimums, decompose the mechanism into
+finer sub-steps — biological teaching graphs almost always fit, and a sparse
+graph is a failure.
+
 ## Quality bar
 
 - **Mechanism over vocabulary.** Capture *what causes what*, not glossary
