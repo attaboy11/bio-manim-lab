@@ -1,9 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "fluid": true,
   "functions": {
     "api/generate.py": {
       "runtime": "@vercel/python@4.3.0",
-      "maxDuration": 60
+      "maxDuration": 300
     }
   },
   "rewrites": [

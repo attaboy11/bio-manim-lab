@@ -239,7 +239,7 @@
         return;
       }
       $("#go").disabled = true;
-      statusEl.textContent = "Running pipeline (ingest → extract → pedagogy → scenes → codegen → study)…";
+      statusEl.textContent = "Running pipeline (ingest → extract → pedagogy → scenes → codegen → study)… cached topics are fast; new topics can take 1-3 minutes.";
       statusEl.classList.remove("error");
       resultEl.style.display = "none";
       try {
