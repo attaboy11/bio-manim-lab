@@ -110,6 +110,121 @@
       color: var(--muted);
       font-size: 12px;
     }
+    .pane-body { display: grid; gap: 14px; }
+    .markdown { display: grid; gap: 10px; }
+    .markdown h3, .markdown h4 {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      color: var(--accent2);
+    }
+    .markdown p, .markdown ul, .markdown ol { margin: 0; }
+    .markdown ul, .markdown ol { padding-left: 20px; }
+    .section-block {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(7, 13, 18, 0.45);
+    }
+    .section-title {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent2);
+    }
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .metric-grid, .qa-grid, .scene-grid, .concept-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .metric-grid, .concept-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .scene-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .qa-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .metric, .concept-card, .scene-card, .qa-card {
+      background: rgba(20, 29, 38, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .scene-card h3, .concept-card h3, .qa-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    .scene-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .scene-list, .plain-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--fg);
+    }
+    .plain-list li, .scene-list li { margin: 4px 0; }
+    .narration {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid var(--accent);
+      color: var(--fg);
+    }
+    details.qa-card summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    details.qa-card summary::-webkit-details-marker { display: none; }
+    details.qa-card[open] {
+      border-color: rgba(143, 224, 178, 0.45);
+      box-shadow: 0 0 0 1px rgba(143, 224, 178, 0.12) inset;
+    }
+    .study-flow {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .raw-block {
+      margin-top: 6px;
+    }
+    .raw-block summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 13px;
+    }
     @media (max-width: 820px) {
       .lede { grid-template-columns: 1fr; }
       header h1 { font-size: 32px; }
@@ -196,22 +311,112 @@
 
       const pretty = (o) => JSON.stringify(o, null, 2);
       const tabs = [
-        ["Concept map",  "concept_map.json",  pretty(a.concept_map),  "application/json"],
-        ["Lesson",       "lesson_outline.md", a.lesson_outline_md || "", "text/markdown"],
-        ["Scenes",       "scene_plan.json",   pretty(a.scene_plan),   "application/json"],
-        ["Narration",    "narration.md",      a.narration_md || "",   "text/markdown"],
-        ["Manim script", "manim_script.py",   a.manim_script || "",   "text/x-python"],
-        ["Summary",      "summary.md",        a.study?.summary_md || "", "text/markdown"],
-        ["Flashcards",   "flashcards.json",   pretty(a.study?.flashcards),  "application/json"],
-        ["Quiz",         "quiz.json",         pretty(a.study?.quiz),        "application/json"],
+        {
+          label: "Study mode",
+          fileName: "study_pack.md",
+          content: buildStudyPackMarkdown(data),
+          mime: "text/markdown",
+          html: renderStudyMode(data),
+        },
+        {
+          label: "Scenes",
+          fileName: "scene_plan.json",
+          content: pretty(a.scene_plan),
+          mime: "application/json",
+          html: renderScenes(a.scene_plan),
+        },
+        {
+          label: "Lesson",
+          fileName: "lesson_outline.md",
+          content: a.lesson_outline_md || "",
+          mime: "text/markdown",
+          html: renderMarkdown(a.lesson_outline_md || ""),
+        },
+        {
+          label: "Concept map",
+          fileName: "concept_map.json",
+          content: pretty(a.concept_map),
+          mime: "application/json",
+          html: renderConceptMap(a.concept_map),
+        },
+        {
+          label: "Narration",
+          fileName: "narration.md",
+          content: a.narration_md || "",
+          mime: "text/markdown",
+          html: renderMarkdown(a.narration_md || ""),
+        },
+        {
+          label: "Flashcards",
+          fileName: "flashcards.json",
+          content: pretty(a.study?.flashcards),
+          mime: "application/json",
+          html: renderFlashcards(a.study?.flashcards || []),
+        },
+        {
+          label: "Quiz",
+          fileName: "quiz.json",
+          content: pretty(a.study?.quiz),
+          mime: "application/json",
+          html: renderQuiz(a.study?.quiz),
+        },
+        {
+          label: "Manim script",
+          fileName: "manim_script.py",
+          content: a.manim_script || "",
+          mime: "text/x-python",
+          html: `<pre>${escapeHtml(a.manim_script || "(empty)")}</pre>`,
+        },
+        {
+          label: "Summary",
+          fileName: "summary.md",
+          content: a.study?.summary_md || "",
+          mime: "text/markdown",
+          html: renderMarkdown(a.study?.summary_md || ""),
+        },
+        {
+          label: "Raw scene JSON",
+          fileName: "scene_plan.json",
+          content: pretty(a.scene_plan),
+          mime: "application/json",
+          html: `<pre>${escapeHtml(pretty(a.scene_plan) || "(empty)")}</pre>`,
+        },
+        {
+          label: "Raw quiz JSON",
+          fileName: "quiz.json",
+          content: pretty(a.study?.quiz),
+          mime: "application/json",
+          html: `<pre>${escapeHtml(pretty(a.study?.quiz) || "(empty)")}</pre>`,
+        },
+        {
+          label: "Raw flashcards JSON",
+          fileName: "flashcards.json",
+          content: pretty(a.study?.flashcards),
+          mime: "application/json",
+          html: `<pre>${escapeHtml(pretty(a.study?.flashcards) || "(empty)")}</pre>`,
+        },
+        {
+          label: "Raw concept JSON",
+          fileName: "concept_map.json",
+          content: pretty(a.concept_map),
+          mime: "application/json",
+          html: `<pre>${escapeHtml(pretty(a.concept_map) || "(empty)")}</pre>`,
+        },
+        {
+          label: "Raw lesson JSON",
+          fileName: "lesson_outline.json",
+          content: pretty(a.lesson_outline),
+          mime: "application/json",
+          html: `<pre>${escapeHtml(pretty(a.lesson_outline) || "(empty)")}</pre>`,
+        },
       ];
 
       tabsEl.innerHTML = tabs.map((t, i) =>
-        `<button class="tab ${i===0?'active':''}" data-i="${i}">${t[0]}</button>`).join("");
+        `<button class="tab ${i===0?'active':''}" data-i="${i}">${escapeHtml(t.label)}</button>`).join("");
       panesEl.innerHTML = tabs.map((t, i) =>
         `<div class="pane" data-i="${i}" style="display:${i===0?'block':'none'}">
-           <h2>${escapeHtml(t[1])} <span class="download" data-dl="${i}">download</span></h2>
-           <pre>${escapeHtml(t[2] || "(empty)")}</pre>
+           <h2>${escapeHtml(t.fileName)} <span class="download" data-dl="${i}">download</span></h2>
+           <div class="pane-body">${t.html}</div>
          </div>`).join("");
 
       tabsEl.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
@@ -220,8 +425,267 @@
         panesEl.querySelectorAll(".pane").forEach(x => x.style.display = (+x.dataset.i === i) ? "block" : "none");
       }));
       panesEl.querySelectorAll(".download").forEach(b => b.addEventListener("click", () => {
-        const i = +b.dataset.dl; download(tabs[i][1], tabs[i][2], tabs[i][3]);
+        const i = +b.dataset.dl; download(tabs[i].fileName, tabs[i].content, tabs[i].mime);
       }));
+    }
+
+    function renderMarkdown(md) {
+      const lines = String(md || "").replace(/\r/g, "").split("\n");
+      const out = [];
+      let paragraph = [];
+      let listType = null;
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        out.push(`<p>${paragraph.map(escapeHtml).join(" ")}</p>`);
+        paragraph = [];
+      }
+
+      function closeList() {
+        if (!listType) return;
+        out.push(listType === "ol" ? "</ol>" : "</ul>");
+        listType = null;
+      }
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          flushParagraph();
+          closeList();
+          continue;
+        }
+        if (trimmed.startsWith("## ")) {
+          flushParagraph();
+          closeList();
+          out.push(`<h4>${escapeHtml(trimmed.slice(3))}</h4>`);
+          continue;
+        }
+        if (trimmed.startsWith("# ")) {
+          flushParagraph();
+          closeList();
+          out.push(`<h3>${escapeHtml(trimmed.slice(2))}</h3>`);
+          continue;
+        }
+        const ordered = trimmed.match(/^\d+\.\s+(.*)$/);
+        if (ordered) {
+          flushParagraph();
+          if (listType !== "ol") {
+            closeList();
+            out.push("<ol>");
+            listType = "ol";
+          }
+          out.push(`<li>${escapeHtml(ordered[1])}</li>`);
+          continue;
+        }
+        if (trimmed.startsWith("- ")) {
+          flushParagraph();
+          if (listType !== "ul") {
+            closeList();
+            out.push("<ul>");
+            listType = "ul";
+          }
+          out.push(`<li>${escapeHtml(trimmed.slice(2))}</li>`);
+          continue;
+        }
+        paragraph.push(trimmed);
+      }
+
+      flushParagraph();
+      closeList();
+      return `<div class="markdown">${out.join("") || "<p>(empty)</p>"}</div>`;
+    }
+
+    function renderStudyMode(data) {
+      const a = data.artifacts;
+      const flashcards = a.study?.flashcards || [];
+      const quiz = a.study?.quiz;
+      return `
+        <div class="section-block">
+          <h3 class="section-title">How To Study This Topic</h3>
+          <div class="study-flow">
+            <div>1. Read the lesson for the big picture.</div>
+            <div>2. Step through the scenes to build a visual model.</div>
+            <div>3. Use the flashcards for recall.</div>
+            <div>4. Finish with the quiz for transfer and correction.</div>
+          </div>
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Summary</h3>
+          ${renderMarkdown(a.study?.summary_md || a.lesson_outline_md || "")}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Scene Walkthrough</h3>
+          ${renderScenes(a.scene_plan)}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Flashcards</h3>
+          ${renderFlashcards(flashcards)}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Quiz</h3>
+          ${renderQuiz(quiz)}
+        </div>
+      `;
+    }
+
+    function renderScenes(scenePlan) {
+      if (!scenePlan?.scenes?.length) return "<p class=\"subtle\">No scene plan available.</p>";
+      const totalMinutes = Math.round((scenePlan.total_estimated_duration || 0) / 6) / 10;
+      return `
+        <div class="metric-grid">
+          <div class="metric"><strong>${scenePlan.scenes.length}</strong> Scenes</div>
+          <div class="metric"><strong>${totalMinutes}</strong> Minutes</div>
+        </div>
+        <div class="scene-grid">
+          ${scenePlan.scenes.map((scene, index) => `
+            <article class="scene-card">
+              <div class="scene-meta">
+                <span class="chip">Scene ${index + 1}</span>
+                <span class="chip">${escapeHtml(scene.visual_strategy || "visual")}</span>
+                <span class="chip">${escapeHtml(String(scene.estimated_duration || 0))}s</span>
+              </div>
+              <h3>${escapeHtml(scene.title || scene.id || "Untitled scene")}</h3>
+              <p class="subtle">${escapeHtml(scene.teaching_goal || "")}</p>
+              <div class="section-block">
+                <h4 class="section-title">Claims</h4>
+                ${renderBulletList(scene.biological_claims)}
+              </div>
+              <div class="section-block">
+                <h4 class="section-title">Animation Steps</h4>
+                ${renderOrderedList(scene.animation_steps)}
+              </div>
+              <div class="section-block">
+                <h4 class="section-title">Labels</h4>
+                <div class="chip-row">${(scene.labels || []).map(label => `<span class="chip">${escapeHtml(label)}</span>`).join("") || "<span class=\"subtle\">No labels</span>"}</div>
+              </div>
+              <div class="narration">${escapeHtml(scene.narration_segment || "")}</div>
+            </article>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderConceptMap(cm) {
+      if (!cm) return "<p class=\"subtle\">No concept map available.</p>";
+      return `
+        <div class="metric-grid">
+          <div class="metric"><strong>${(cm.entities || []).length}</strong> Entities</div>
+          <div class="metric"><strong>${(cm.processes || []).length}</strong> Processes</div>
+          <div class="metric"><strong>${(cm.causal_edges || []).length}</strong> Causal edges</div>
+          <div class="metric"><strong>${(cm.misconceptions || []).length}</strong> Misconceptions</div>
+        </div>
+        <div class="concept-grid">
+          ${(cm.entities || []).slice(0, 8).map(entity => `
+            <article class="concept-card">
+              <h3>${escapeHtml(entity.name)}</h3>
+              <div class="chip-row">
+                <span class="chip">${escapeHtml(entity.kind || "entity")}</span>
+                <span class="chip">${escapeHtml(entity.scale || "scale")}</span>
+              </div>
+              <p>${escapeHtml(entity.description || "")}</p>
+            </article>
+          `).join("")}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Processes</h3>
+          ${(cm.processes || []).map(process => `
+            <article class="concept-card">
+              <h3>${escapeHtml(process.name)}</h3>
+              <p>${escapeHtml(process.description || "")}</p>
+            </article>
+          `).join("") || "<p class=\"subtle\">No processes</p>"}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Common Misconceptions</h3>
+          ${(cm.misconceptions || []).map(item => `
+            <article class="concept-card">
+              <h3>${escapeHtml(item.wrong || "Misconception")}</h3>
+              <p><strong>Correct model:</strong> ${escapeHtml(item.right || "")}</p>
+              ${item.why_it_sticks ? `<p class="subtle">${escapeHtml(item.why_it_sticks)}</p>` : ""}
+            </article>
+          `).join("") || "<p class=\"subtle\">No misconceptions recorded.</p>"}
+        </div>
+        <details class="raw-block">
+          <summary>Show raw concept JSON</summary>
+          <pre>${escapeHtml(JSON.stringify(cm, null, 2))}</pre>
+        </details>
+      `;
+    }
+
+    function renderFlashcards(cards) {
+      if (!cards?.length) return "<p class=\"subtle\">No flashcards generated.</p>";
+      return `
+        <div class="qa-grid">
+          ${cards.map((card, index) => `
+            <details class="qa-card">
+              <summary>${index + 1}. ${escapeHtml(card.question || "Question")}</summary>
+              <div class="scene-meta" style="margin-top:10px">
+                <span class="chip">${escapeHtml(card.tag || "card")}</span>
+                <span class="chip">${escapeHtml(card.difficulty || "medium")}</span>
+              </div>
+              <p>${escapeHtml(card.answer || "")}</p>
+            </details>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderQuiz(quiz) {
+      if (!quiz?.questions?.length) return "<p class=\"subtle\">No quiz generated.</p>";
+      return `
+        <div class="qa-grid">
+          ${quiz.questions.map((question, index) => `
+            <details class="qa-card">
+              <summary>${index + 1}. ${escapeHtml(question.question || "Question")}</summary>
+              <div class="scene-meta" style="margin-top:10px">
+                <span class="chip">${escapeHtml(question.kind || "quiz")}</span>
+              </div>
+              <p><strong>Answer:</strong> ${escapeHtml(question.answer || "")}</p>
+              ${question.explanation ? `<p class="subtle">${escapeHtml(question.explanation)}</p>` : ""}
+              ${question.distractors?.length ? `<div class="section-block"><h4 class="section-title">Distractors</h4>${renderBulletList(question.distractors)}</div>` : ""}
+            </details>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderBulletList(items) {
+      if (!items?.length) return "<p class=\"subtle\">None.</p>";
+      return `<ul class="plain-list">${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function renderOrderedList(items) {
+      if (!items?.length) return "<p class=\"subtle\">None.</p>";
+      return `<ol class="plain-list">${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`;
+    }
+
+    function buildStudyPackMarkdown(data) {
+      const a = data.artifacts;
+      const flashcards = (a.study?.flashcards || []).map((card, index) =>
+        `${index + 1}. Q: ${card.question}\n   A: ${card.answer}`
+      ).join("\n");
+      const quiz = (a.study?.quiz?.questions || []).map((question, index) =>
+        `${index + 1}. [${question.kind}] ${question.question}\n   Answer: ${question.answer}`
+      ).join("\n");
+      return [
+        `# ${data.topic} — Study Pack`,
+        "",
+        "## Lesson",
+        "",
+        a.lesson_outline_md || "",
+        "",
+        "## Summary",
+        "",
+        a.study?.summary_md || "",
+        "",
+        "## Flashcards",
+        "",
+        flashcards,
+        "",
+        "## Quiz",
+        "",
+        quiz,
+      ].join("\n");
     }
 
     function escapeHtml(s) {
