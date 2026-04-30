@@ -110,6 +110,16 @@
       color: var(--muted);
       font-size: 12px;
     }
+    .focus-helper {
+      display: none;
+      padding: 10px 12px;
+      border: 1px solid rgba(143, 224, 178, 0.28);
+      border-radius: 10px;
+      background: rgba(143, 224, 178, 0.08);
+      color: var(--fg);
+      font-size: 13px;
+    }
+    .focus-helper strong { color: var(--accent); }
     .pane-body { display: grid; gap: 14px; }
     .markdown { display: grid; gap: 10px; }
     .markdown h3, .markdown h4 {
@@ -217,6 +227,84 @@
       color: var(--muted);
       font-size: 14px;
     }
+    .study-session {
+      display: grid;
+      gap: 12px;
+    }
+    .progress-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+    }
+    .progress-fill {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 180ms ease;
+    }
+    .study-checks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    .study-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      color: var(--fg);
+      font-size: 13px;
+    }
+    .study-check input { accent-color: var(--accent); }
+    .mechanism-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: mechanism;
+    }
+    .mechanism-list li {
+      counter-increment: mechanism;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+    }
+    .mechanism-list li::before {
+      content: counter(mechanism);
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #001322;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .misconception-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .misconception-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+    }
+    .misconception-card p { margin: 6px 0 0; }
     .raw-block {
       margin-top: 6px;
     }
@@ -250,6 +338,7 @@
       </div>
       <form id="f">
         <input id="topic" type="text" placeholder="Biology topic, e.g. ATP synthase and oxidative phosphorylation" />
+        <div id="focusHelper" class="focus-helper"></div>
         <textarea id="notes" placeholder="Optional notes, textbook excerpt, or pasted paper paragraph"></textarea>
         <div class="actions">
           <button id="go" type="submit">Generate</button>
@@ -283,13 +372,53 @@
     const tabsEl = $("#tabs");
     const panesEl = $("#panes");
     const metaEl = $("#meta");
+    const focusHelperEl = $("#focusHelper");
+    let statusTimer = null;
+
+    const focusTopics = {
+      "cell": "eukaryotic cell structure and organelle function",
+      "cells": "eukaryotic cell structure and organelle function",
+      "dna": "DNA replication and polymerase proofreading",
+      "rna": "transcription and RNA processing",
+      "protein": "protein folding and structure-function relationships",
+      "proteins": "protein folding and structure-function relationships",
+      "enzyme": "enzyme active sites and Michaelis-Menten kinetics",
+      "enzymes": "enzyme active sites and Michaelis-Menten kinetics",
+      "respiration": "cellular respiration and oxidative phosphorylation",
+      "photosynthesis": "light reactions and carbon fixation in photosynthesis",
+      "immune system": "adaptive immunity: B cells, T cells, and antigen recognition",
+      "genetics": "Mendelian inheritance and genotype-to-phenotype reasoning",
+      "evolution": "natural selection and allele frequency change"
+    };
 
     document.querySelectorAll(".examples button").forEach(b => {
       b.addEventListener("click", () => {
         topicEl.value = b.dataset.ex;
         if (!notesEl.value.trim()) notesEl.focus();
+        updateFocusHelper();
       });
     });
+
+    topicEl.addEventListener("input", updateFocusHelper);
+    notesEl.addEventListener("input", updateFocusHelper);
+
+    function updateFocusHelper() {
+      const topic = topicEl.value.trim();
+      const notes = notesEl.value.trim();
+      const focused = getFocusedTopic(topic, notes);
+      if (!focused || focused === topic) {
+        focusHelperEl.style.display = "none";
+        focusHelperEl.innerHTML = "";
+        return;
+      }
+      focusHelperEl.style.display = "block";
+      focusHelperEl.innerHTML = `Focused study topic: <strong>${escapeHtml(focused)}</strong>`;
+    }
+
+    function getFocusedTopic(topic, notes) {
+      if (!topic || notes) return topic;
+      return focusTopics[topic.toLowerCase()] || topic;
+    }
 
     function download(filename, content, mime) {
       const blob = new Blob([content], { type: mime || "text/plain" });
@@ -427,6 +556,7 @@
       panesEl.querySelectorAll(".download").forEach(b => b.addEventListener("click", () => {
         const i = +b.dataset.dl; download(tabs[i].fileName, tabs[i].content, tabs[i].mime);
       }));
+      bindStudySession(data.run_id);
     }
 
     function renderMarkdown(md) {
@@ -501,17 +631,20 @@
       const quiz = a.study?.quiz;
       return `
         <div class="section-block">
-          <h3 class="section-title">How To Study This Topic</h3>
-          <div class="study-flow">
-            <div>1. Read the lesson for the big picture.</div>
-            <div>2. Step through the scenes to build a visual model.</div>
-            <div>3. Use the flashcards for recall.</div>
-            <div>4. Finish with the quiz for transfer and correction.</div>
-          </div>
+          <h3 class="section-title">Study Session</h3>
+          ${renderStudySession(data.run_id)}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Mechanism</h3>
+          ${renderMechanism(a.lesson_outline)}
         </div>
         <div class="section-block">
           <h3 class="section-title">Summary</h3>
           ${renderMarkdown(a.study?.summary_md || a.lesson_outline_md || "")}
+        </div>
+        <div class="section-block">
+          <h3 class="section-title">Misconception Repair</h3>
+          ${renderMisconceptions(a.concept_map)}
         </div>
         <div class="section-block">
           <h3 class="section-title">Scene Walkthrough</h3>
@@ -524,6 +657,80 @@
         <div class="section-block">
           <h3 class="section-title">Quiz</h3>
           ${renderQuiz(quiz)}
+        </div>
+      `;
+    }
+
+    function renderStudySession(runId) {
+      return `
+        <div class="study-session" data-session="${escapeHtml(runId)}">
+          <div class="progress-track" aria-label="Study progress">
+            <span class="progress-fill" data-progress-fill></span>
+          </div>
+          <div class="study-checks">
+            <label class="study-check"><input type="checkbox" data-study-step="mechanism"> Mechanism</label>
+            <label class="study-check"><input type="checkbox" data-study-step="scenes"> Scenes</label>
+            <label class="study-check"><input type="checkbox" data-study-step="flashcards"> Flashcards</label>
+            <label class="study-check"><input type="checkbox" data-study-step="quiz"> Quiz</label>
+          </div>
+          <div class="subtle" data-progress-label>0 of 4 complete</div>
+        </div>
+      `;
+    }
+
+    function bindStudySession(runId) {
+      const session = panesEl.querySelector(".study-session");
+      if (!session) return;
+      const key = `biomanim:study:${runId}`;
+      const saved = readStudyProgress(key);
+      const inputs = Array.from(session.querySelectorAll("[data-study-step]"));
+      inputs.forEach(input => {
+        input.checked = Boolean(saved[input.dataset.studyStep]);
+        input.addEventListener("change", () => {
+          const next = {};
+          inputs.forEach(item => { next[item.dataset.studyStep] = item.checked; });
+          localStorage.setItem(key, JSON.stringify(next));
+          updateStudyProgress(session);
+        });
+      });
+      updateStudyProgress(session);
+    }
+
+    function readStudyProgress(key) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function updateStudyProgress(session) {
+      const inputs = Array.from(session.querySelectorAll("[data-study-step]"));
+      const done = inputs.filter(input => input.checked).length;
+      const total = inputs.length || 1;
+      const pct = Math.round((done / total) * 100);
+      session.querySelector("[data-progress-fill]").style.width = pct + "%";
+      session.querySelector("[data-progress-label]").textContent = `${done} of ${total} complete`;
+    }
+
+    function renderMechanism(outline) {
+      const steps = outline?.mechanism_steps || [];
+      if (!steps.length) return "<p class=\"subtle\">No mechanism steps available.</p>";
+      return `<ol class="mechanism-list">${steps.map(step => `<li>${escapeHtml(step)}</li>`).join("")}</ol>`;
+    }
+
+    function renderMisconceptions(cm) {
+      const items = cm?.misconceptions || [];
+      if (!items.length) return "<p class=\"subtle\">No misconceptions recorded.</p>";
+      return `
+        <div class="misconception-grid">
+          ${items.map(item => `
+            <article class="misconception-card">
+              <strong>${escapeHtml(item.wrong || "Incorrect model")}</strong>
+              <p>${escapeHtml(item.right || "")}</p>
+              ${item.why_it_sticks ? `<p class="subtle">${escapeHtml(item.why_it_sticks)}</p>` : ""}
+            </article>
+          `).join("")}
         </div>
       `;
     }
@@ -695,15 +902,16 @@
 
     $("#f").addEventListener("submit", async (ev) => {
       ev.preventDefault();
-      const topic = topicEl.value.trim();
+      const rawTopic = topicEl.value.trim();
       const notes = notesEl.value.trim();
-      if (!topic && !notes) {
+      const topic = getFocusedTopic(rawTopic, notes);
+      if (!rawTopic && !notes) {
         statusEl.textContent = "Enter a topic, notes, or both.";
         statusEl.classList.add("error");
         return;
       }
       $("#go").disabled = true;
-      statusEl.textContent = "Running pipeline (ingest → extract → pedagogy → scenes → codegen → study)… cached topics are fast; new topics can take 1-3 minutes.";
+      startStatusTimer(topic, rawTopic);
       statusEl.classList.remove("error");
       resultEl.style.display = "none";
       try {
@@ -723,9 +931,24 @@
         statusEl.textContent = "✗ " + e.message;
         statusEl.classList.add("error");
       } finally {
+        clearInterval(statusTimer);
+        statusTimer = null;
         $("#go").disabled = false;
       }
     });
+
+    function startStatusTimer(topic, rawTopic) {
+      const started = Date.now();
+      const focusNote = topic && rawTopic && topic !== rawTopic ? ` Focused to "${topic}".` : "";
+      const renderStatus = () => {
+        const seconds = Math.max(0, Math.round((Date.now() - started) / 1000));
+        const elapsed = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+        statusEl.textContent = `Running pipeline: concept map, lesson, scenes, Manim script, study pack. ${elapsed} elapsed.${focusNote}`;
+      };
+      clearInterval(statusTimer);
+      renderStatus();
+      statusTimer = setInterval(renderStatus, 1000);
+    }
   </script>
 </body>
 </html>

@@ -107,6 +107,16 @@ def _load_or_init_manifest(rd: Path, topic: str, quant: bool) -> RunManifest:
     )
 
 
+def _record_render_artifact(manifest: RunManifest, rd: Path, result: Path | None) -> None:
+    if result is None:
+        return
+
+    manifest.artifacts["render/final.mp4"] = str(result)
+    if "render" not in manifest.stages_completed:
+        manifest.stages_completed.append("render")
+    manifest.stages_failed = [stage for stage in manifest.stages_failed if stage != "render"]
+
+
 # ----------------------------------------------------------------------------
 # commands
 # ----------------------------------------------------------------------------
@@ -239,6 +249,9 @@ def render(run: Optional[str] = typer.Option(None, "--run")) -> None:
     if result is None:
         console.print(f"[yellow]ℹ render skipped[/] — see {rd / 'render' / 'STATUS.md'}")
     else:
+        manifest = _load_or_init_manifest(rd, rd.name, False)
+        _record_render_artifact(manifest, rd, result)
+        _save_manifest(manifest, rd)
         console.print(f"[green]✓ rendered[/] {result}")
 
 

@@ -5,6 +5,7 @@ import threading
 
 from biomanim.ingest import ingest
 from biomanim.models import ConceptMap, LessonOutline
+from biomanim.render import _find_final_mp4, render
 from biomanim.supervisor import _timeout
 from biomanim.utils import llm
 
@@ -91,3 +92,24 @@ def test_timeout_context_is_safe_off_main_thread():
     thread.start()
     thread.join()
     assert errors == []
+
+
+def test_render_normalizes_nested_manim_output(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("BIOMANIM_OUTPUT_ROOT", str(tmp_path))
+    run_id = "render-nested"
+    run_dir = tmp_path / run_id
+    render_dir = run_dir / "render"
+    nested_final = render_dir / "videos" / "manim_script" / "480p15" / "final.mp4"
+    nested_final.parent.mkdir(parents=True, exist_ok=True)
+    (run_dir / "manim_script.py").write_text("class BioScene: pass\n", encoding="utf-8")
+    nested_final.write_bytes(b"fake-mp4")
+
+    monkeypatch.setattr("biomanim.render.shutil.which", lambda name: "/usr/bin/manim")
+    monkeypatch.setattr("biomanim.render.subprocess.run", lambda *args, **kwargs: None)
+
+    result = render(run_id=run_id)
+
+    assert result == render_dir / "final.mp4"
+    assert result.exists()
+    assert result.read_bytes() == b"fake-mp4"
+    assert _find_final_mp4(render_dir) is not None

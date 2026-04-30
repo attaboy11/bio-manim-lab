@@ -55,15 +55,20 @@ def render(*, run_id: str, quality: str = "low_quality") -> Path | None:
         raise
 
     final = _find_final_mp4(render_dir)
-    if final is not None and final.name != "final.mp4":
-        # Normalise the location so callers can rely on render/final.mp4.
-        target = render_dir / "final.mp4"
-        try:
-            shutil.copy2(final, target)
-            return target
-        except OSError:
-            return final
-    return final
+    if final is None:
+        return None
+
+    target = render_dir / "final.mp4"
+    if final.resolve() == target.resolve():
+        return final
+
+    # Normalize the location so callers can rely on render/final.mp4 even
+    # when Manim nests the movie under render/videos/.../final.mp4.
+    try:
+        shutil.copy2(final, target)
+        return target
+    except OSError:
+        return final
 
 
 def _find_final_mp4(render_dir: Path) -> Path | None:
