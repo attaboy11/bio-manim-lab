@@ -374,6 +374,7 @@
     const metaEl = $("#meta");
     const focusHelperEl = $("#focusHelper");
     let statusTimer = null;
+    const productionApiUrl = "https://bio-manim-lab.vercel.app/api/generate";
 
     const focusTopics = {
       "cell": "eukaryotic cell structure and organelle function",
@@ -418,6 +419,10 @@
     function getFocusedTopic(topic, notes) {
       if (!topic || notes) return topic;
       return focusTopics[topic.toLowerCase()] || topic;
+    }
+
+    function apiEndpoint() {
+      return window.location.protocol === "file:" ? productionApiUrl : "/api/generate";
     }
 
     function download(filename, content, mime) {
@@ -915,12 +920,18 @@
       statusEl.classList.remove("error");
       resultEl.style.display = "none";
       try {
-        const r = await fetch("/api/generate", {
+        const r = await fetch(apiEndpoint(), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ topic, notes }),
         });
-        const data = await r.json();
+        const text = await r.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("API returned a non-JSON response. Use the live Vercel app or run the project with Vercel dev.");
+        }
         if (!r.ok || !data.ok) {
           throw new Error(data.error || ("HTTP " + r.status));
         }
@@ -928,7 +939,10 @@
         statusEl.textContent = "✓ Done. " + Object.keys(data.artifacts).length + " artifact groups from a " + mode + ".";
         render(data);
       } catch (e) {
-        statusEl.textContent = "✗ " + e.message;
+        const fileHint = window.location.protocol === "file:"
+          ? " Check your internet connection or open https://bio-manim-lab.vercel.app/."
+          : "";
+        statusEl.textContent = "✗ " + e.message + fileHint;
         statusEl.classList.add("error");
       } finally {
         clearInterval(statusTimer);
@@ -940,10 +954,11 @@
     function startStatusTimer(topic, rawTopic) {
       const started = Date.now();
       const focusNote = topic && rawTopic && topic !== rawTopic ? ` Focused to "${topic}".` : "";
+      const apiNote = window.location.protocol === "file:" ? " Using live API." : "";
       const renderStatus = () => {
         const seconds = Math.max(0, Math.round((Date.now() - started) / 1000));
         const elapsed = seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-        statusEl.textContent = `Running pipeline: concept map, lesson, scenes, Manim script, study pack. ${elapsed} elapsed.${focusNote}`;
+        statusEl.textContent = `Running pipeline: concept map, lesson, scenes, Manim script, study pack. ${elapsed} elapsed.${focusNote}${apiNote}`;
       };
       clearInterval(statusTimer);
       renderStatus();
